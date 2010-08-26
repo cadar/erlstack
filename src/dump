@@ -1,0 +1,16 @@
+#!/bin/bash
+
+function send {
+    screen -S stack -X stuff "$1"
+    sleep 0.03
+}
+
+
+export PATH=~/otp/bin:$PATH
+
+send $'\003'
+send $'a\n'
+send $'clear\n'
+send $"$(cat history)"
+send $'\n'
+

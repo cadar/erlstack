@@ -1,0 +1,9 @@
+: arg1 110 126 112 126 4 list ;
+: arg2 3 1 list ;
+: format2  2 list format ;  
+<- call io format2 arg1 arg2
+arg2 arg1 2 list format io call
+.s
+.d
+
+

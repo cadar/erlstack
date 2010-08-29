@@ -1,2 +1,2 @@
-cat first_program | erl -pa ../ebin -noshell -s st run
+ erl -sname stack -pa ../ebin -noshell -s st run
 

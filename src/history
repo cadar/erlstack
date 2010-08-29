@@ -1,2 +1,2 @@
-cat first_program | erl -pa ebin -noshell -s st run
+cat first_program | erl -pa ../ebin -noshell -s st run
 

@@ -1,5 +1,5 @@
 -module(st).
--import(lists,[sublist/2,nthtail/2,reverse/1,map/2]).
+-import(lists,[sublist/2,nthtail/2,reverse/1,map/2,reverse/1]).
 -export([run/0,test/0,st/4]).
 % Ws = Words, D = Dictionary, S = Stack, C = Context state interpret/compile => in/comp
 % T = Top of stack, Nextw = Next word in program,
@@ -8,6 +8,9 @@ st([],D,S,C) -> {[],D,S,C};
 st(['<<' |Ws], D,        S, in) -> st(reverse(Ws), D, S, in);
 st(['+'  |Ws], D, [T,S2|S], in) -> st(Ws, D, [T+S2|S], in);
 st([list |Ws], D,    [T|S], in) -> st(Ws, D, [sublist(S, T)|nthtail(T, S)], in);
+st([rev  |Ws], D,    [T|S], in) -> st(Ws, D, [reverse(T)|S], in);
+st([swap |Ws], D,  [A,B|S], in) -> st(Ws, D, [B,A|S], in);
+st([size |Ws], D,        S, in) -> st(Ws, D, [length(S)|S], in);
 st([drop |Ws], D,    [_|S], in) -> st(Ws, D, S, in);
 st([mark |Ws], D,        S,  C) -> st(Ws, D, S, C);
 st([l2t  |Ws], D,    [T|S],  C) -> st(Ws, D, [list_to_tuple(T)|S], C);
@@ -16,12 +19,8 @@ st(['.'  |Ws], D,    [T|S], in) -> io:format("~p", [T]), st(Ws, D, S, in);
 st(['.s' |Ws], D,        S,  C) -> io:format("s~p ~s~n", [S, C]), print_dic(D), st(Ws, D, S, C);
 st(['.w' |Ws], D,        S,  C) -> io:format("w~p ~s~n", [Ws, C]), st(Ws, D, S, C);
 
-%st([create|Ws],                  D, [T|S], in) -> st(Ws,   [{T,[]}|D],         S, in);
-st([create      ,W|Ws],          D,     S, in) -> st(Ws, [{W,[]}|D], S, in);
-st([create_next   |Ws],          D,     S, in) -> {Here,Ws1} = here(Ws,hd(Ws),[]),
-						  st(Ws1, [{Here,[]}|D], S, in);
-st([get_next |Ws],               D,     S, in) -> {Here,Ws1} = here(Ws,hd(Ws),[]),
-						  st(Ws1, D, [Here|S], in);
+st([create |Ws], D, [T|S], in) -> st(Ws, [{T,[]}|D], S, in);
+st([word   |Ws], D,     S, in) -> {Here,Ws1} = here(Ws,hd(Ws),[]), st(Ws1, [{Here,[]}|D], S, in);
 st([','      |Ws],     [{W,Def}|D], [T|S], in) -> st(Ws,   [{W,Def++[T]}|D],   S, in);
 st(['\'',   Nextw|Ws],           D,     S, in) -> st(Ws,            D, [Nextw|S], in);
 st(['[\']', Nextw|Ws], [{W,Def}|D],   S, comp) -> st(Ws, [{W,Def++[Nextw]}|D], S, comp);
@@ -33,9 +32,8 @@ st(['IMM'  |Ws], [{W,Def}|D], S, in) -> st(Ws ,[{W,{im,Def}}|D], S, in);
 
 % Compile anonymous function
 st([pop_word|Ws], [{tmp,Comp}|D], S, in) -> st(Ws, D, [Comp|S], in);
-st([apply|Ws], D,[Body|S], in)          -> st(Body++Ws, D, S, in);
-st([call |Ws], D,[Fun,Mod,Args|S], in)  -> Res = apply(Fun, Mod, Args),
-                                           st(Ws, D, [Res|S], in);
+st([apply   |Ws], D,[Body|S], in)          -> st(Body++Ws, D, S, in);
+st([call    |Ws], D,[Fun,Mod,Args|S], in)  -> st(Ws, D, [apply(Fun, Mod, Args)|S], in);
 %% 1. force execution of word, no compilning into word on dic,
 %%    when done go back to compiling
 %% 2. normal case, compiling to top of dictionary

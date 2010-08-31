@@ -1,7 +1,12 @@
-: arg1 110 126 112 126 4 list ;
-: arg2 3 1 list ;
-: format2  2 list format ;
-<< call io format2 arg1 arg2
-arg2 arg1 2 list format io call
+: jo1 1 ;
+: jo3 3 ;
+: hej 2 2 jo 2 2 ;
+: joo 1 1 1 hej 1 1 1 ;
+: 2format 2 list format ;
+: rapply rev apply ;
+: sl size list ;
+: rsl size list rev ;
+[ 3 ] [ 126 112 126 110 ] 2format io ' call rsl apply drop
+drop ' call io format ' list 2 [ 126 112 126 110 ] [ 3 ] sl apply
+select * from table1 where X = 3 rsl
 .s
-.d

@@ -1,2 +1,2 @@
- erl -sname stack -pa ../ebin -noshell -s st run
-
+erl -make
+erl -sname stack -pa ../ebin -noshell -s st run

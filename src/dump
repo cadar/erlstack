@@ -6,7 +6,8 @@ function send {
 }
 
 
-export PATH=~/otp/bin:$PATH
+#export PATH=~/otp/bin:$PATH
+export PATH=/home/matsw/Kreditor/svn/OTP/install/R13B04/bin:$PATH
 
 send $'\003'
 send $'a\n'

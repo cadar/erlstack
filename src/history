@@ -1,2 +1,3 @@
-erl -make
+erl -make 
 cat first_program | erl -sname stack -pa ../ebin -noshell -s st run
+erl -sname stack -pa ../ebin -noshell -s st run

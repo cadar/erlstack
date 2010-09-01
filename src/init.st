@@ -5,5 +5,3 @@
 : ] pop_word ['] .[ ; IMM
 : { tmp create ['] ]. ;
 : } pop_word l2t ['] .[ ; IMM
-.s
-

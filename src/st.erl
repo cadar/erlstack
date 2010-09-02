@@ -4,6 +4,7 @@
 %%
 % Ws = Words, D = Dictionary, S = Stack, C = Context state interpret/compile => in/comp
 % T = Top of stack, Nextw = Next word in program,
+%%-----------------------------------------------------------------------------
 st([],D,S,C) -> {[],D,S,C};
 
 st(['#'  | _], D,        S, in) -> st([], D, S, in);
@@ -20,13 +21,14 @@ st(['.'  |Ws], D,    [T|S], in) -> io:format("~p", [T]), st(Ws, D, S, in);
 st(['.s' |Ws], D,        S,  C) -> io:format("s~p ~s~n", [S, C]), print_dic(D), st(Ws, D, S, C);
 st(['.w' |Ws], D,        S,  C) -> io:format("w~p ~s~n", [Ws, C]), st(Ws, D, S, C);
 
+
 st(['.[' |Ws], D, S,  _) -> st(Ws, D, S, in);
 st(['].' |Ws], D, S,  _) -> st(Ws, D, S, comp);
-st([create |Ws], D, [T|S], in) -> st(Ws, [{T,[]}|D], S, in);
-st(['IMM'  |Ws], [{W,Def}|D], S, in) -> st(Ws ,[{W,{im,Def}}|D], S, in);
-st([word   |Ws], D,     S, in) -> {Here,Ws1} = here(Ws,hd(Ws),[]), st(Ws1, [{Here,[]}|D], S, in);
-st([','    |Ws], [{W,Def}|D], [T|S], in) -> st(Ws,   [{W,Def++[T]}|D],   S, in);
-st(['\'',   Nextw|Ws],           D,   S, in) -> st(Ws,            D, [Nextw|S], in);
+st([create |Ws], D, [T|S], in)                 -> st(Ws, [{T,[]}|D], S, in);
+st(['IMM'  |Ws], [{W,Def}|D], S, in)           -> st(Ws ,[{W,{im,Def}}|D], S, in);
+st([word   |Ws], D,     S, in)                 -> {Here,Ws1} = here(Ws,hd(Ws),[]), st(Ws1, [{Here,[]}|D], S, in);
+st([','    |Ws], [{W,Def}|D], [T|S], in)       -> st(Ws,   [{W,Def++[T]}|D],   S, in);
+st(['\'',   Nextw|Ws],           D,   S, in)   -> st(Ws,            D, [Nextw|S], in);
 st(['[\']', Nextw|Ws], [{W,Def}|D],   S, comp) -> st(Ws, [{W,Def++[Nextw]}|D], S, comp);
 
 % Compile anonymous function
@@ -37,9 +39,9 @@ st([apply   |Ws], D,[Body|S], in)         -> st(Body++Ws, D, S, in);
 st(['fun'   |Ws], D, [T|S], C) -> io:format("~p~n",[T]),
 				  st(Ws, D, [fun() -> {_,_,S1,_}=st(T, D, S, C),S1 end|S], C);
 st(['fun1'  |Ws], D, [FunWs|S], C) -> io:format("~p~n",[FunWs]),
-					  st(Ws, D, [fun(Arg) -> {_ ,_ , S1, _} = st(FunWs, D, [Arg|S], C),
-							      S1
-						     end| S], C);
+				      st(Ws, D, [fun(Arg) -> {_ ,_ , S1, _} = st(FunWs, D, [Arg|S], C),
+							     S1
+						 end| S], C);
 st([funcall     |Ws], D,      [Fun|S], in)-> Res = apply(Fun, []),
 					     io:format("Fun ~p => ~p~n",[Fun,Res]),
 					     st(Ws, D, Res++S, in);
@@ -87,21 +89,23 @@ run([Line|L], D, S, C) ->
     {_ ,D1 ,S1 ,C1} = st(Ws ,D ,S ,C),
     run(L, D1 ,S1 ,C1).
 
+
 parse([],[],List)      -> reverse(List);
 parse([],Acc,List)     -> parse([],[],[padd(Acc)|List]);
 parse([10|T],Acc,List) -> parse(T,Acc,List);
 parse([32|T],[],List)  -> parse(T,[],List);
 parse([32|T],Acc,List) -> parse(T,[],[padd(Acc)|List]);
-parse([34|T],[],List)  -> {String,Rest} = pstring(T,[]), parse(Rest,[],[String|List]);
-parse([34|T],Acc,List) -> {String,Rest} = pstring(T,[]), parse(Rest,[],[String,padd(Acc)|List]);
+parse([34|T],[],List)  -> {Str,Rest} = pstr(T,[]), parse(Rest,[],[Str|List]);
+parse([34|T],Acc,List) -> {Str,Rest} = pstr(T,[]), parse(Rest,[],[Str,padd(Acc)|List]);
 parse([F|T],Acc,List)  -> parse(T,[F|Acc],List).
 
 padd(Acc) -> try list_to_integer(reverse(Acc))
 	     catch _:_ -> list_to_atom(reverse(Acc)) end.
 
-pstring([34|T],Acc) -> {reverse(Acc), T};
-pstring([H|T],Acc)  -> pstring(T,[H|Acc]).
+pstr([34|T],Acc) -> {reverse(Acc), T};
+pstr([H|T],Acc)  -> pstr(T,[H|Acc]).
 
+%%-----------------------------------------------------------------------------
 
 
 print_dic(D) -> map(fun(X) -> io:format("    ~p~n",[X]) end, D).

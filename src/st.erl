@@ -10,14 +10,20 @@ st([],D,S,C) -> {[],D,S,C};
 st(['#'  | _], D,        S, in) -> st([], D, S, in);
 st(['<<' |Ws], D,        S, in) -> st(reverse(Ws), D, S, in);
 st(['+'  |Ws], D, [T,S2|S], in) -> st(Ws, D, [T+S2|S], in);
+st(['++' |Ws], D, [T,S2|S], in) -> st(Ws, D, [T++S2|S], in);
 st([swap |Ws], D,  [A,B|S], in) -> st(Ws, D, [B,A|S], in);
 st([drop |Ws], D,    [_|S], in) -> st(Ws, D, S, in);
 st([size |Ws], D,        S, in) -> st(Ws, D, [length(S)|S], in);
 st([list |Ws], D,    [T|S], in) -> st(Ws, D, [sublist(S, T)|nthtail(T, S)], in);
+st([tuple|Ws], D,    [T|S], in) -> st(Ws, D, [list_to_tuple(sublist(S, T))|nthtail(T, S)], in);
 st([rev  |Ws], D,    [T|S], in) -> st(Ws, D, [reverse(T)|S], in);
 st([mark |Ws], D,        S,  C) -> st(Ws, D, S, C);
 st([l2t  |Ws], D,    [T|S],  C) -> st(Ws, D, [list_to_tuple(T)|S], C);
+st([t2l  |Ws], D,    [T|S],  C) -> st(Ws, D, [tuple_to_list(T)|S], C);
+st([hd   |Ws], D,    [T|S],  C) -> st(Ws, D, [hd(T)|S], C);
+st([tl   |Ws], D,    [T|S],  C) -> st(Ws, D, [tl(T)|S], C);
 st(['.'  |Ws], D,    [T|S], in) -> io:format("~p", [T]), st(Ws, D, S, in);
+st(['.'  |Ws], D,       [], in) -> st(Ws, D, [], in);
 st(['.s' |Ws], D,        S,  C) -> io:format("s~p ~s~n", [S, C]), print_dic(D), st(Ws, D, S, C);
 st(['.w' |Ws], D,        S,  C) -> io:format("w~p ~s~n", [Ws, C]), st(Ws, D, S, C);
 
@@ -36,10 +42,9 @@ st([pop_word|Ws], [{tmp,Comp}|D], S, in)  -> st(Ws, D, [Comp|S], in);
 st([apply   |Ws], D,[Body|S], in)         -> st(Body++Ws, D, S, in);
 
 % NEED TESTING
-st(['fun'   |Ws], D, [T|S], C) -> io:format("~p~n",[T]),
-				  st(Ws, D, [fun() -> {_,_,S1,_}=st(T, D, S, C),S1 end|S], C);
-st(['fun1'  |Ws], D, [FunWs|S], C) -> io:format("~p~n",[FunWs]),
-				      st(Ws, D, [fun(Arg) -> {_ ,_ , S1, _} = st(FunWs, D, [Arg|S], C),
+st(['fun'   |Ws], D, [T|S], C) -> st(Ws, D, [fun() -> {_,_,S1,_}=st(T, D, [], C),S1 end|S], C);
+st(['1fun'  |Ws], D, [FunWs|S], C) -> io:format("1fun => ~p~n",[FunWs]),
+				      st(Ws, D, [fun(Arg) -> {_ ,_ , S1, _} = st(FunWs, D, [Arg], C),
 							     S1
 						 end| S], C);
 st([funcall     |Ws], D,      [Fun|S], in)-> Res = apply(Fun, []),
@@ -81,7 +86,7 @@ run() ->
     run(InitStack, [], [], in).
 run([], D, S, C) ->
     case io:get_line('') of
-	eof -> halt(0);
+	eof -> ok; %halt(0);
 	Line -> run([Line], D, S, C)
     end;
 run([Line|L], D, S, C) ->
@@ -108,7 +113,7 @@ pstr([H|T],Acc)  -> pstr(T,[H|Acc]).
 %%-----------------------------------------------------------------------------
 
 
-print_dic(D) -> map(fun(X) -> io:format("    ~p~n",[X]) end, D).
+print_dic(D) -> map(fun(X) -> io:format("    ~p~n",[X]) end, sublist(D,3)).
 
 here([],First,Acc)      -> {First,tl(reverse(Acc))};
 here([mark,W|Ws],_,Acc) -> {W,Acc++Ws};

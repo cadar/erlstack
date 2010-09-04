@@ -1,11 +1,25 @@
-: jo1 1 ;
-: jo3 3 ;
-: hej 2 2 jo 2 2 ;
-: joo 1 1 1 hej 1 1 1 ;
-: 2format 2 list format ;
 : rapply rev apply ;
-: sl size list ;
-: rsl size list rev ;
-: s ['] .s ; IMM
-drop call io  format ' list 2 "~p~n" [ 3 ] sl  fun funcall
-s
+0node 1 list 1create_schema
+0mnesia-start
+: fields length name 2 list ;
+: att fields attributes 2 tuple ;
+: disc 0node 1 list  disc_copies 2 tuple ; 
+: arg2 att disc 2 list ;
+: arg1 person ;
+arg2 arg1 2create_table
+: rec person append ; 
+drop drop drop 
+: lambda-write rec l2t 1write 4 list rev fun  ; 
+190 Cadar 2 list lambda-write 1tran drop
+175 Dylan 2 list lambda-write 1tran drop
+175 Jones 2 list lambda-write 1tran drop
+175 Billy 2 list lambda-write 1tran drop
+: lambda-read 1read 4 list rev fun ;
+1 cadar person 2 tuple 1read 4 list f1tran
+2 dylan person 2 tuple 1read 4 list f1tran
+clean
+175 _ person 3 tuple 1match 4 list f1tran atomdrop
+hd 
+1 2 
+: lambda-print ' 1p ' pl 2 list rev 1fun ; 
+.s

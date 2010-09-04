@@ -24,4 +24,4 @@
 
 : append 1 list ++ ; 
 : clean size list drop ; 
-: atomdrop t2l tl hd hd ; 
+: atomdrop t2l tl hd hd ;

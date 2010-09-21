@@ -1,3 +1,4 @@
 erl -make 
 rm -Rf  Mnesia.stack@erl
-cat first_program | erl -sname stack -pa ../ebin -noshell -s st run
+erl -sname stack -pa ../ebin 
+st:run().

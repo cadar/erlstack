@@ -18,6 +18,7 @@ st([list |Ws], D,    [T|S], in) -> st(Ws, D, [sublist(S, T)|nthtail(T, S)], in);
 st([tuple|Ws], D,    [T|S], in) -> st(Ws, D, [list_to_tuple(sublist(S, T))|nthtail(T, S)], in);
 st([l2t  |Ws], D,    [T|S], in) -> st(Ws, D, [list_to_tuple(T)|S], in);
 st([t2l  |Ws], D,    [T|S], in) -> st(Ws, D, [tuple_to_list(T)|S], in);
+st([i2l  |Ws], D,    [T|S], in) -> st(Ws, D, [integer_to_list(T)|S], in);
 st([rev  |Ws], D,    [T|S], in) -> st(Ws, D, [reverse(T)|S], in);
 st([exp  |Ws], D,    [T|S], in) -> st(Ws, D, lists:append(T,S), in);
 st([hd   |Ws], D,    [T|S], in) -> st(Ws, D, [hd(T)|S], in);
@@ -28,21 +29,22 @@ st(['.s' |Ws], D,        S,  C) -> io:format("s~p ~s~n", [S, C]), print_dic(D), 
 st(['.w' |Ws], D,        S,  C) -> io:format("w~p ~s~n", [Ws, C]), st(Ws, D, S, C);
 st([size |Ws], D,        S, in) -> st(Ws, D, [length(S)|S], in);
 st([mark |Ws], D,        S,  C) -> st(Ws, D, S, C);
-st([halt |_], _,        _,  _) -> halt(0);
+st([halt |_],  _,        _,  _) -> halt(0);
 
 st([dd   |Ws], [W|D],     S, C) -> st(Ws, D, [W|S], C); % dictionary delete
 st([cc   |Ws],     D, [T|S], C) -> st(Ws, [T|D], S, C); % create dictionary
 
 st(['i[' |Ws], D, S,  _) -> st(Ws, D, S, in);
 st([']i' |Ws], D, S,  _) -> st(Ws, D, S, comp);
-st([create |Ws], D, [T|S], in)                 -> 
-    io:format("create: t:~p s:~p~n",[T,S]),
+st([create |Ws], D, [T|S], in) -> 
+%    io:format("create: t:~p s:~p~n",[T,S]),
     st(Ws, [{T,[]}|D], S, in);
-st(['IMM'  |Ws], [{W,Def}|D], S, in)           -> st(Ws ,[{W,{im,Def}}|D], S, in);
-st([word   |Ws], D,     S, in)                 -> {Here,Ws1} = here(Ws,hd(Ws),[]), st(Ws1, [{Here,[]}|D], S, in);
-st([','    |Ws], [{W,Def}|D], [T|S], in)       -> st(Ws,   [{W,Def++[T]}|D],   S, in);
-st(['\'',   Nextw|Ws],           D,   S, in)   -> st(Ws,            D, [Nextw|S], in);
-st(['[\']', Nextw|Ws], [{W,Def}|D],   S, comp) -> st(Ws, [{W,Def++[Nextw]}|D], S, comp);
+st(['IMM'  |Ws], [{W,Def}|D], S, in) -> st(Ws ,[{W,{im,Def}}|D], S, in);
+st([word   |Ws], D,           S, in) -> {Here,Ws1} = here(Ws,hd(Ws),[]), 
+                                        st(Ws1, [{Here,[]}|D], S, in);
+st([','    |Ws], [{W,Def}|D], [T|S],    in)   -> st(Ws,   [{W,Def++[T]}|D],   S, in);
+st(['\'',   Nextw|Ws],            D, S, in)   -> st(Ws,            D, [Nextw|S], in);
+st(['[\']', Nextw|Ws],  [{W,Def}|D], S, comp) -> st(Ws, [{W,Def++[Nextw]}|D], S, comp);
 
 % Compile anonymous function
 st([pop_word|Ws], [{Type,Comp}|D], S, in)  -> st(Ws, D, [Comp|S], in);
@@ -107,7 +109,6 @@ pstr([H|T],Acc)  -> pstr(T,[H|Acc]).
 
 
 print_dic(D) -> map(fun(X) -> io:format("    ~p~n",[X]) end, sublist(D,3)).
-
 here([],First,Acc)      -> {First,tl(reverse(Acc))};
 here([mark,W|Ws],_,Acc) -> {W,Acc++Ws};
 here([W|Ws],PassOn,Acc) -> here(Ws,PassOn,[W|Acc]).

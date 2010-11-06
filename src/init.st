@@ -6,7 +6,15 @@
 : ] pop_word       ['] i[ ; IMM
 : } pop_word l2t   ['] i[ ; IMM
 
-.s
+: 2format 2 list format io mcall drop ;
+"*** print functions~n" 0 list swap 2format 
+: 1f 1 list format io mcall drop ;
+: 1p 1 list "~p" 2format ;  
+: l "~n" 1f ; 
+: 1pl 1p l ; 
+: 1sl 1f l ; 
+
+"*** defining mnesia helpers" 1sl
 : 0node 0 list ['] node erlang mcall ; 
 : 1create_schema 1 list create_schema mnesia mcall ; 
 : 0mnesia-start 0 list start mnesia mcall ; 
@@ -16,19 +24,17 @@
 : 1match 1 list match_object mnesia ' mcall ;
 : 1tran  1 list transaction mnesia mcall ;
 : f1tran rev fun 1tran ;
-: 2format 2 list format io mcall drop ;
 : 2map 1fun 2 list map lists mcall ; 
-: p 0 list swap 2format ; 
-: 1p 1 list "~p" 2format ;  
-: 1s 1 list "~s" 2format ;  
-: lf "~n" ;
-: pl lf p ; 
 
+"*** list helpers" 1sl
 : append 1 list ++ ; 
+: cons 1 list ++ ; 
 : clean size list drop ; 
-: atomdrop t2l tl hd hd ;
-
-
+: th t2l tl hd ;
+: thh t2l tl hd hd ;
+: thhh t2l tl hd hd hd ;
+: concat swap ++ ; 
+: flat 1 list flatten lists mcall ; 
 
 : rapply rev apply ;
 0node 1 list 1create_schema
@@ -42,16 +48,19 @@ arg2 arg1 2create_table
 : rec person append ; 
 drop drop drop 
 : lambda-write rec l2t 1write 4 list rev fun ; 
+
+"*** write to mnesia" 1sl
 190 Cadar 2 list lambda-write 1tran drop
 175 Dylan 2 list lambda-write 1tran drop
-175 Jones 2 list lambda-write 1tran drop
+175 Willy 2 list lambda-write 1tran drop
 175 Billy 2 list lambda-write 1tran drop
 
-
+"*** test read from mnesia" 1sl
 : lambda-read 1read 4 list rev fun ;
-Cadar person 2 tuple lambda-read  1tran atomdrop 
-Dylan person 2 tuple 1read 4 list f1tran atomdrop 
+Cadar person 2 tuple lambda-read 1tran thhh 1pl
+Dylan person 2 tuple 1read 4 list f1tran thhh 1pl
+99
+175 _ person 3 tuple 1match 4 list f1tran thh
 
-0 0 
-175 _ person 3 tuple 1match 4 list f1tran atomdrop drop
-.s
+l
+"--- Stack and Dictionary ---" 1sl .s

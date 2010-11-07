@@ -26,6 +26,7 @@ st([tl   |Ws], D,    [T|S], in) -> st(Ws, D, [tl(T)|S], in);
 st(['.'  |Ws], D,    [T|S], in) -> io:format("~p", [T]), st(Ws, D, S, in);
 st(['.'  |Ws], D,       [], in) -> st(Ws, D, [], in);
 st(['.s' |Ws], D,        S,  C) -> io:format("s~p ~s~n", [S, C]), print_dic(D), st(Ws, D, S, C);
+st(['ss' |Ws], D,        S,  C) -> io:format("s~p ~s~n", [S, C]), print_dic(D), st(Ws, D, S, C);
 st(['.w' |Ws], D,        S,  C) -> io:format("w~p ~s~n", [Ws, C]), st(Ws, D, S, C);
 st([size |Ws], D,        S, in) -> st(Ws, D, [length(S)|S], in);
 st([mark |Ws], D,        S,  C) -> st(Ws, D, S, C);
@@ -47,7 +48,7 @@ st(['\'',   Nextw|Ws],            D, S, in)   -> st(Ws,            D, [Nextw|S],
 st(['[\']', Nextw|Ws],  [{W,Def}|D], S, comp) -> st(Ws, [{W,Def++[Nextw]}|D], S, comp);
 
 % Compile anonymous function
-st([pop_word|Ws], [{Type,Comp}|D], S, in)  -> st(Ws, D, [Comp|S], in);
+st([pop_word|Ws], [{Type,Comp}|D], S, in) -> st(Ws, D, [Comp|S], in);
 st([apply   |Ws], D,[Body|S], in)         -> st(Body++Ws, D, S, in);
 
 st(['fun'  |Ws], D, [T|S], in) -> st(Ws, D, [fun() -> {_, S1, _}=st(T, D, [], in),S1 end|S], in);
@@ -61,12 +62,9 @@ st([mcall  |Ws], D, [Fun,Mod,Args|S], in) -> st(Ws, D, [apply(Fun, Mod, Args)|S]
 %% 2. normal case, compiling to top of dictionary
 st([W|Ws], [{Name,Def}|D], S, comp) ->
     case proplists:lookup(W,D) of
-	{_, {im, Word}} ->
-%            io:format("IMM-> ~p ~p im: ~p~n",[Name,W,Word++Ws]),
-            st(Word++Ws, [{Name,Def}|D], S, in);
-	_ ->
-	    % io:format("comp-> ~p ~p~n",[Name,W]),
-	    st(Ws, [{Name,Def++[W]}|D], S, comp)
+	{_, {im, Word}} ->% io:format("IMM-> ~p ~p im: ~p - ~p~n",[Name,W,Word,Ws]),
+                           st(Word++Ws, [{Name,Def}|D], S, in);
+	_ -> st(Ws, [{Name,Def++[W]}|D], S, comp)
     end;
 
 st([W|Ws], D, S, in) ->

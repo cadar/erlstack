@@ -1,0 +1,1 @@
+-record(c,{s=int,st=[],di=[],ws=[],in=[]}).

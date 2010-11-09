@@ -1,4 +1,4 @@
 erl -make 
 rm -Rf  Mnesia.stack@erl
-erl -sname stack -pa ../ebin 
-es:start().
+erl -sname stack -pa ../ebin -noshell -run es 
+

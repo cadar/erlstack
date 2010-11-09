@@ -5,9 +5,10 @@
 file(F,R) -> {ok, Binary} = file:read_file(F),
              line(string:tokens(erlang:binary_to_list(Binary), "\n"), #c{},R).
 
-line([], LD, R)       -> line([io:get_line('')], LD,R);
-line([eof], _, _)     -> halt(0);
-line(["q\n"], LD, _)  -> LD;
+line([], LD, R)       -> L=io:get_line(''), line([L], LD,R);
+line([eof], _, _)     -> halt();
+line(["q"], _, _)     -> halt();
+line(["q\n"], LD, _)  -> halt();
 line([Line|L], LD, R) -> line(L, R(LD#c{in=parse(Line,[],[])}), R).
 
 parse([],[],List)      -> lists:reverse(List);

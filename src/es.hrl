@@ -1,1 +1,1 @@
--record(c,{s=int,st=[],di=[],ws=[],in=[]}).
+-record(c,{c=0,st=[],di=[],ws=[],in=[]}).

@@ -2,3 +2,69 @@ create : postpone word postpone ]
 : ;  postpone [ [ IMM
 : var  create  0 , ;     
 : const create , ;     
+
+
+: 2format 2 list format io mcall drop ;
+"*** print functions~n" 0 list swap 2format
+: 1f 1 list format io mcall drop ;
+: 1p 1 list "~p" 2format ;  
+: 1s 1 list "~s" 2format ;  
+: l "~n" 1f ; 
+: 1pl 1p l ; 
+: 1sl 1f l ; 
+
+
+"*** list helpers" 1sl
+: append 1 list ++ ; 
+: cons 1 list ++ ; 
+: clean size list drop ; 
+: th t2l tl hd ;
+: thh t2l tl hd hd ;
+: thhh t2l tl hd hd hd ;
+: concat swap ++ ; 
+: flat 1 list flatten lists mcall ; 
+: rapply rev apply ;
+
+
+: 2verify 2dup /= if "Error: " 1s 1p then drop drop ; 
+: 1ok ok 2verify drop ; 
+
+"*** defining mnesia helpers" 1sl
+
+: erlang-node 0 list node erlang mcall ; 
+: 1create-schema 1 list create_schema mnesia mcall ; 
+: mnesia-start 0 list start mnesia mcall ; 
+: 2create-table 2 list create_table mnesia mcall ; 
+: 1read  1 list read mnesia ['] mcall , ;
+: 1match 1 list match_object mnesia ['] mcall , ;
+: 1tran  1 list transaction mnesia ['] mcall , ;
+: f1tran rev fun 1tran ;
+: 2map 1fun 2 list map lists mcall ; 
+
+"*** start mnesia" 1sl 
+
+erlang-node 1 list 1create-schema 1ok 
+mnesia-start 1ok
+
+: fields length name 2 list ; 
+: att fields attributes 2 tuple ;
+: disc erlang-node 1 list disc_copies 2 tuple ; 
+: arg2 att disc 2 list ;
+: arg1 person ;
+: 1atom-ok ok atomic 2 tuple 2verify  ; 
+arg2 arg1 2create-table 1atom-ok 
+: rec person append ; 
+
+
+
+: hello "hej!" 1sl ; 
+: goodbye "ses!" 1sl ; 
+: coming ['] hello paloha ! ; 
+: going [']  goodbye paloha ! ; 
+: say ' paloha ! ;
+0 paloha !
+: aloha paloha @ execute  ; 
+say hello 
+aloha
+say goodbye
+aloha

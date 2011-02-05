@@ -18,9 +18,10 @@ eat(LD=#c{ws=['pop'|Ws], st=Ss, di=[{_,Def}|Ds]})              -> peat(LD#c{st=[
 eat(LD=#c{ws=['swap'|Ws], st=[A,B|Ss]})                        -> peat(LD#c{st=[B,A|Ss],ws=Ws});
 eat(LD=#c{ws=['dup'|Ws], st=[A|Ss]})                           -> peat(LD#c{st=[A,A|Ss],ws=Ws});
 eat(LD=#c{ws=['2dup'|Ws], st=[A,B|Ss]})                        -> peat(LD#c{st=[A,B,A,B|Ss],ws=Ws});
-eat(LD=#c{ws=['s'|Ws]})                                        -> seat(LD#c{ws=Ws});
+eat(LD=#c{ws=['s'|Ws]})                                        -> p("p",LD),peat(LD#c{ws=Ws});
 eat(LD=#c{ws=['w'|Ws]})                                        -> w(LD),eat(LD#c{ws=Ws});
-eat(LD=#c{ws=['.'|Ws],st=[S|_]})                               -> io:format("~p",[S]),eat(LD#c{ws=Ws});
+eat(LD=#c{ws=['.'|Ws],st=[]})                                  -> io:format("empty"),eat(LD#c{ws=Ws,st=[]});
+eat(LD=#c{ws=['.'|Ws],st=[S|Ss]})                              -> io:format("~p",[S]),eat(LD#c{ws=Ws,st=Ss});
 eat(LD=#c{ws=[']'|T]})                                         -> peat(LD#c{c=1,ws=T}); % comp
 eat(LD=#c{ws=['['|T]})                                         -> peat(LD#c{c=0,ws=T}); % immediate
 eat(LD=#c{ws=['#'|_]})                                         -> peat(LD#c{ws=[],in=[]}); 
@@ -77,11 +78,15 @@ compile_or_imm(L,LD = #c{di=[{_,_}|D],ws=Ws})          -> compile_or_imm(L,LD#c{
 compile_or_imm(L = #c{di=[{N,Def}|D],ws=[W|Ws]},_)     -> ieat(L#c{di=[{N,Def++[W]}|D],ws=Ws}).%Comp!
 %%                                                             -------------------
 
-seat(LD)   -> p("stack:",LD), eat(LD).
-peat(LD=#c{debug=1})   -> p("p",LD), eat(LD);
+peat(LD=#c{debug=1})   -> p("exe",LD), eat(LD);
 peat(LD)   -> eat(LD).
-ieat(LD=#c{debug=1})   -> p("i",LD), eat(LD);
+ieat(LD=#c{debug=1})   -> p("imm",LD), eat(LD);
 ieat(LD)   -> eat(LD).
+p(Str,Out) -> 
+    io:format("~s ~p ~p   exec~p",[Str,Out#c.c,Out#c.st,Out#c.ws]),
+    io:format("<-~p",[Out#c.in]),
+    io:format("~n").
+
 w(Out) -> 
     lists:map(fun(X) -> {N,Ds} = X,
                         case N of
@@ -97,10 +102,6 @@ w(Out) ->
                                   end, Ds),   
                         io:format(";~n")
               end, lists:sublist(Out#c.di,5)),
-    io:format("~n").
-p(Str,Out) -> 
-    io:format("~s ~p ~p   exec~p",[Str,Out#c.c,Out#c.st,Out#c.ws]),
-    io:format("<-~p",[Out#c.in]),
     io:format("~n").
 
 %% create : postpone word postpone ]
